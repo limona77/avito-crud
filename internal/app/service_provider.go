@@ -10,9 +10,9 @@ import (
 	"avito-crud/internal/service"
 	"avito-crud/internal/service/auth"
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
-	"time"
 )
 
 type serviceProvider struct {
@@ -24,7 +24,7 @@ type serviceProvider struct {
 	authService    service.IAuthService
 	authRepository repostiory.IAuthRepository
 
-	tokenTTL time.Duration
+	jwtConfig config.JWTConfig
 }
 
 func newServiceProvider() *serviceProvider {
@@ -72,15 +72,37 @@ func (s *serviceProvider) HTTPConfig() config.HTTPConfig {
 
 	return s.httpConfig
 }
+func (s *serviceProvider) JWTConfig() config.JWTConfig {
+	if s.jwtConfig == nil {
+		cfg, err := config.NewJWTConfig()
+		if err != nil {
+			log.Fatalf("failed to get jwt config: %s", err.Error())
+		}
 
-func (s *serviceProvider) AuthService() service.IAuthService {
+		s.jwtConfig = cfg
+	}
+
+	return s.jwtConfig
+}
+func (s *serviceProvider) LoggerConfig() *slog.Logger {
+	if s.jwtConfig == nil {
+		cfg := config.NewLoggerConfig()
+
+		s.log = cfg
+	}
+
+	return s.log
+}
+
+func (s *serviceProvider) AuthService(ctx context.Context) service.IAuthService {
 	if s.authService == nil {
-		s.authService = auth.NewAuthService(s.log, s.tokenTTL)
+		fmt.Println(s.LoggerConfig(), s.JWTConfig().TTL(), s.AuthRepository(ctx), []byte(s.jwtConfig.Secret()))
+		s.authService = auth.NewAuthService(s.LoggerConfig(), s.JWTConfig().TTL(), s.AuthRepository(ctx), []byte(s.jwtConfig.Secret()))
 	}
 
 	return s.authService
 }
-func (s *serviceProvider) NoteRepository(ctx context.Context) repostiory.IAuthRepository {
+func (s *serviceProvider) AuthRepository(ctx context.Context) repostiory.IAuthRepository {
 	if s.authRepository == nil {
 		s.authRepository = authRepo.NewAuthRepository(s.DBClient(ctx))
 	}

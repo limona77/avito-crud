@@ -1,7 +1,10 @@
 package api
 
 import (
+	repo "avito-crud/internal/repostiory/auth"
 	"avito-crud/internal/service"
+	service2 "avito-crud/internal/service/auth"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 )
@@ -27,13 +30,21 @@ func newAuthRoutes(r *gin.RouterGroup, authService service.IAuthService) {
 func (a *auth) auth(c *gin.Context) {
 	var req AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": errors.New("incorrect format").Error()})
 		return
 	}
 
-	token, err := a.authService.Login(req.Username, req.Password)
+	token, err := a.authService.Login(c, req.Username, req.Password)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
+		if errors.Is(err, repo.ErrUserNotFound) {
+			c.JSON(401, gin.H{"error": repo.ErrUserNotFound.Error()})
+			return
+		}
+		if errors.Is(err, service2.ErrInvalidCredentials) {
+			c.JSON(401, gin.H{"error": service2.ErrInvalidCredentials.Error()})
+			return
+		}
+		c.JSON(500, gin.H{"error": errors.New("internal server error").Error()})
 		return
 	}
 	resp := AuthResponse{Token: token}

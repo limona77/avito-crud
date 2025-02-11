@@ -1,7 +1,8 @@
 CREATE TABLE employees (
                            id SERIAL PRIMARY KEY,
                            name VARCHAR(255) NOT NULL,
-                           balance INT NOT NULL DEFAULT 1000
+                           balance INT NOT NULL DEFAULT 1000,
+                           password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE merch (
@@ -29,3 +30,8 @@ CREATE TABLE purchases (
                            CONSTRAINT fk_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE,
                            CONSTRAINT fk_merch FOREIGN KEY (merch_id) REFERENCES merch (id) ON DELETE CASCADE
 );
+
+CREATE UNIQUE INDEX idx_employees_name ON employees(name);
+CREATE INDEX idx_transactions_sender ON transactions(sender_id);
+CREATE INDEX idx_transactions_receiver ON transactions(receiver_id);
+CREATE INDEX idx_purchases_employee ON purchases(employee_id);

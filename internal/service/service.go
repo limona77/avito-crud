@@ -1,5 +1,7 @@
 package service
 
+import "context"
+
 type IAuthService interface {
-	Login(username, password string) (string, error)
+	Login(ctx context.Context, username, password string) (string, error)
 }

@@ -3,5 +3,5 @@ deps:
 run:
 	go run cmd/main.go
 
-docker-compose-run:
+dcu:
 	docker-compose up
