@@ -90,7 +90,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Authorization"},
 		AllowCredentials: true,
 	})
-	api.NewRouter(router, a.serviceProvider.AuthService(ctx))
+	api.NewRouter(router, a.serviceProvider.AuthService(ctx), a.serviceProvider.ShopService(ctx))
 	a.httpServer = &http.Server{
 		Addr:    a.serviceProvider.HTTPConfig().Address(),
 		Handler: corsMiddleware.Handler(router),

@@ -22,11 +22,6 @@ type AuthResponse struct {
 	Token string `json:"token"`
 }
 
-func newAuthRoutes(r *gin.RouterGroup, authService service.IAuthService) {
-	a := &auth{authService: authService}
-	r.POST("/auth", a.auth)
-}
-
 func (a *auth) auth(c *gin.Context) {
 	var req AuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -37,7 +32,7 @@ func (a *auth) auth(c *gin.Context) {
 	token, err := a.authService.Login(c, req.Username, req.Password)
 	if err != nil {
 		if errors.Is(err, repo.ErrUserNotFound) {
-			c.JSON(401, gin.H{"error": repo.ErrUserNotFound.Error()})
+			c.JSON(404, gin.H{"error": repo.ErrUserNotFound.Error()})
 			return
 		}
 		if errors.Is(err, service2.ErrInvalidCredentials) {

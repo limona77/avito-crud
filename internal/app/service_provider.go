@@ -7,10 +7,11 @@ import (
 	"avito-crud/internal/config"
 	"avito-crud/internal/repostiory"
 	authRepo "avito-crud/internal/repostiory/auth"
+	shopRepo "avito-crud/internal/repostiory/shop"
 	"avito-crud/internal/service"
 	"avito-crud/internal/service/auth"
+	"avito-crud/internal/service/shop"
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 )
@@ -23,6 +24,9 @@ type serviceProvider struct {
 
 	authService    service.IAuthService
 	authRepository repostiory.IAuthRepository
+
+	shopService    service.IShopService
+	shopRepository repostiory.IShopRepository
 
 	jwtConfig config.JWTConfig
 }
@@ -96,7 +100,6 @@ func (s *serviceProvider) LoggerConfig() *slog.Logger {
 
 func (s *serviceProvider) AuthService(ctx context.Context) service.IAuthService {
 	if s.authService == nil {
-		fmt.Println(s.LoggerConfig(), s.JWTConfig().TTL(), s.AuthRepository(ctx), []byte(s.jwtConfig.Secret()))
 		s.authService = auth.NewAuthService(s.LoggerConfig(), s.JWTConfig().TTL(), s.AuthRepository(ctx), []byte(s.jwtConfig.Secret()))
 	}
 
@@ -108,4 +111,20 @@ func (s *serviceProvider) AuthRepository(ctx context.Context) repostiory.IAuthRe
 	}
 
 	return s.authRepository
+}
+
+func (s *serviceProvider) ShopService(ctx context.Context) service.IShopService {
+	if s.shopService == nil {
+		s.shopService = shop.NewShopService(s.LoggerConfig(), s.ShopRepository(ctx), s.AuthRepository(ctx), []byte(s.JWTConfig().Secret()))
+	}
+
+	return s.shopService
+}
+
+func (s *serviceProvider) ShopRepository(ctx context.Context) repostiory.IShopRepository {
+	if s.shopRepository == nil {
+		s.shopRepository = shopRepo.NewShopRepository(s.DBClient(ctx))
+	}
+
+	return s.shopRepository
 }

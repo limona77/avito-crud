@@ -14,6 +14,7 @@ func GenerateToken(info model.User, secretKey []byte, duration time.Duration) (s
 		},
 		Username: info.UserName,
 		Balance:  info.Balance,
+		ID:       info.ID,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

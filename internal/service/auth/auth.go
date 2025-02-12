@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"avito-crud/internal/repostiory"
 	repo "avito-crud/internal/repostiory/auth"
+	"avito-crud/internal/service"
 	"avito-crud/internal/utils"
 	"avito-crud/pkg/logger/sl"
 	"context"
@@ -9,11 +11,23 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
+	"time"
 )
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 )
+
+type auth struct {
+	log            *slog.Logger
+	tokenTTL       time.Duration
+	authRepository repostiory.IAuthRepository
+	jwtSecret      []byte
+}
+
+func NewAuthService(log *slog.Logger, tokenTTL time.Duration, authRepository repostiory.IAuthRepository, jwtSecret []byte) service.IAuthService {
+	return &auth{log: log, tokenTTL: tokenTTL, authRepository: authRepository, jwtSecret: jwtSecret}
+}
 
 func (a *auth) Login(ctx context.Context, username, password string) (string, error) {
 	const op = "auth.Login"
@@ -35,7 +49,7 @@ func (a *auth) Login(ctx context.Context, username, password string) (string, er
 
 				return "", fmt.Errorf("%s: %w", op, err)
 			}
-			_, err = a.authRepository.CreateUser(ctx, username, string(passHash))
+			id, err := a.authRepository.CreateUser(ctx, username, string(passHash))
 			if err != nil {
 				a.log.Error("failed to create user", sl.Err(err))
 				if errors.Is(err, repo.ErrUserExists) {
@@ -43,6 +57,8 @@ func (a *auth) Login(ctx context.Context, username, password string) (string, er
 				}
 				return "", err
 			}
+			user.ID = id
+			user.UserName = username
 			token, err := utils.GenerateToken(*user, a.jwtSecret, a.tokenTTL)
 			if err != nil {
 				a.log.Error("failed to generate token", sl.Err(err))

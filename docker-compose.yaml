@@ -6,8 +6,10 @@ volumes:
 services:
   pg-local:
     image: postgres:14-alpine3.17
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: test_db
+      POSTGRES_PASSWORD: test_db
     ports:
       - "54321:5432"
     volumes:
