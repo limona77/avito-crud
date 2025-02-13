@@ -82,12 +82,12 @@ func (s *shopRepository) CreatePurchase(ctx context.Context, userID, merchID int
 		QueryRaw: queryInsertPurchase,
 	}
 
-	rows, err := s.db.DB().ExecContext(ctx, qInsertPurchase, userID, merchID)
+	res, err := s.db.DB().ExecContext(ctx, qInsertPurchase, userID, merchID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	if rows.RowsAffected() == 0 {
+	if res.RowsAffected() == 0 {
 		return fmt.Errorf("%s: %w", op, ErrInsufficientFunds)
 	}
 	return nil

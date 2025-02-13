@@ -3,14 +3,17 @@ package app
 import (
 	"avito-crud/internal/client/db"
 	"avito-crud/internal/client/db/pg"
+	"avito-crud/internal/client/db/transaction"
 	"avito-crud/internal/closer"
 	"avito-crud/internal/config"
 	"avito-crud/internal/repostiory"
 	authRepo "avito-crud/internal/repostiory/auth"
 	shopRepo "avito-crud/internal/repostiory/shop"
+	transferRepo "avito-crud/internal/repostiory/transfer"
 	"avito-crud/internal/service"
 	"avito-crud/internal/service/auth"
 	"avito-crud/internal/service/shop"
+	"avito-crud/internal/service/transfer"
 	"context"
 	"log"
 	"log/slog"
@@ -18,15 +21,21 @@ import (
 
 type serviceProvider struct {
 	httpConfig config.HTTPConfig
-	log        *slog.Logger
-	pgConfig   config.PGConfig
-	dbClient   db.Client
+
+	log *slog.Logger
+
+	pgConfig  config.PGConfig
+	dbClient  db.Client
+	txManager db.TxManager
 
 	authService    service.IAuthService
 	authRepository repostiory.IAuthRepository
 
 	shopService    service.IShopService
 	shopRepository repostiory.IShopRepository
+
+	transferService    service.ITransferService
+	transferRepository repostiory.ITransferRepository
 
 	jwtConfig config.JWTConfig
 }
@@ -64,6 +73,15 @@ func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
 
 	return s.dbClient
 }
+
+func (s *serviceProvider) TxManager(ctx context.Context) db.TxManager {
+	if s.txManager == nil {
+		s.txManager = transaction.NewTransactionManager(s.DBClient(ctx).DB())
+	}
+
+	return s.txManager
+}
+
 func (s *serviceProvider) HTTPConfig() config.HTTPConfig {
 	if s.httpConfig == nil {
 		cfg, err := config.NewHTTPConfig()
@@ -117,7 +135,6 @@ func (s *serviceProvider) ShopService(ctx context.Context) service.IShopService 
 	if s.shopService == nil {
 		s.shopService = shop.NewShopService(s.LoggerConfig(), s.ShopRepository(ctx), s.AuthRepository(ctx), []byte(s.JWTConfig().Secret()))
 	}
-
 	return s.shopService
 }
 
@@ -125,6 +142,19 @@ func (s *serviceProvider) ShopRepository(ctx context.Context) repostiory.IShopRe
 	if s.shopRepository == nil {
 		s.shopRepository = shopRepo.NewShopRepository(s.DBClient(ctx))
 	}
-
 	return s.shopRepository
+}
+
+func (s *serviceProvider) TransferService(ctx context.Context) service.ITransferService {
+	if s.transferService == nil {
+		s.transferService = transfer.NewTransferService(s.LoggerConfig(), s.TransferRepository(ctx), []byte(s.JWTConfig().Secret()), s.TxManager(ctx))
+	}
+	return s.transferService
+}
+
+func (s *serviceProvider) TransferRepository(ctx context.Context) repostiory.ITransferRepository {
+	if s.transferRepository == nil {
+		s.transferRepository = transferRepo.NewTransferRepository(s.DBClient(ctx))
+	}
+	return s.transferRepository
 }

@@ -15,3 +15,9 @@ type IShopRepository interface {
 	UpdateBalance(ctx context.Context, price, userID int) error
 	CreatePurchase(ctx context.Context, userID, merchID int) error
 }
+
+type ITransferRepository interface {
+	CreateTransaction(ctx context.Context, sender, receiver string, amount int) (int, error)
+	UpdateBalance(ctx context.Context, sender, receiver string, amount int) error
+	CheckBalance(ctx context.Context, sender string, amount int) (bool, error)
+}

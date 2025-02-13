@@ -9,3 +9,10 @@ type IAuthService interface {
 type IShopService interface {
 	BuyItem(ctx context.Context, token, item string) error
 }
+
+//	type ITransferService interface {
+//		SendCoin(ctx context.Context, token, receiver string, amount int) error
+//	}
+type ITransferService interface {
+	SendCoin(ctx context.Context, token, receiver string, amount int) error
+}

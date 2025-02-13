@@ -34,12 +34,16 @@ func (s *shop) BuyItem(ctx context.Context, token, item string) error {
 		slog.String("op", op),
 		slog.String("item", item),
 	)
+
+	log.Info("verifying token")
 	userClaims, err := utils.VerifyToken(token, s.jwtSecret)
 	if err != nil {
 		s.log.Warn("failed to verify token", sl.Err(err))
 		return fmt.Errorf("%s: %w", op, ErrInvalidToken)
 	}
-	log.Info("attempting to buy item")
+
+	// TODO: Cover with Transaction
+	log.Info("attempting to get user")
 	user, err := s.authRepository.GetUser(ctx, userClaims.Username)
 	if err != nil {
 		if errors.Is(err, authRepo.ErrUserNotFound) {
@@ -48,6 +52,7 @@ func (s *shop) BuyItem(ctx context.Context, token, item string) error {
 		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
+	log.Info("attempting to get merch")
 	merch, err := s.shopRepository.GetMerch(ctx, item)
 	if err != nil {
 		if errors.Is(err, shopRepo.ErrMerchNotFound) {
@@ -60,7 +65,7 @@ func (s *shop) BuyItem(ctx context.Context, token, item string) error {
 	if user.Balance < merch.Price {
 		return fmt.Errorf("%s: %w", op, shopRepo.ErrInsufficientFunds)
 	}
-
+	log.Info("attempting to update balance")
 	err = s.shopRepository.UpdateBalance(ctx, merch.Price, user.ID)
 	if err != nil {
 		if errors.Is(err, shopRepo.ErrInsufficientFunds) {

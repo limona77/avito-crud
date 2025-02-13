@@ -5,6 +5,7 @@ import (
 	shopRepo "avito-crud/internal/repostiory/shop"
 	"avito-crud/internal/service"
 	shopService "avito-crud/internal/service/shop"
+	"avito-crud/internal/service/transfer"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"log/slog"
@@ -12,12 +13,17 @@ import (
 	"strings"
 )
 
-type shop struct {
-	shopService service.IShopService
-	log         *slog.Logger
+type transaction struct {
+	transferService service.ITransferService
+	log             *slog.Logger
 }
 
-func (s *shop) buyItem(c *gin.Context) {
+type SendCoinRequest struct {
+	ToUser string `json:"toUser" binding:"required"`
+	Amount int    `json:"amount" binding:"required"`
+}
+
+func (t *transaction) sendCoin(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 
 	if authHeader == "" {
@@ -34,32 +40,32 @@ func (s *shop) buyItem(c *gin.Context) {
 
 	token := tokenParts[1]
 
-	item := c.Param("item")
-	if item == "" {
-		c.JSON(400, gin.H{"error": "item not provided"})
+	var req SendCoinRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := s.shopService.BuyItem(c, token, item)
+	err := t.transferService.SendCoin(c, token, req.ToUser, req.Amount)
 	if err != nil {
+		if errors.Is(err, shopService.ErrInvalidToken) {
+			c.JSON(401, gin.H{"error": "Invalid token"})
+			return
+		}
 		if errors.Is(err, shopRepo.ErrInsufficientFunds) {
 			c.JSON(400, gin.H{"error": shopRepo.ErrInsufficientFunds.Error()})
 			return
 		}
-		if errors.Is(err, shopRepo.ErrMerchNotFound) {
-			c.JSON(404, gin.H{"error": shopRepo.ErrMerchNotFound.Error()})
+		if errors.Is(err, transfer.ErrSameUser) {
+			c.JSON(400, gin.H{"error": transfer.ErrSameUser.Error()})
 			return
 		}
 		if errors.Is(err, authRepo.ErrUserNotFound) {
 			c.JSON(404, gin.H{"error": authRepo.ErrUserNotFound.Error()})
 			return
 		}
-		if errors.Is(err, shopService.ErrInvalidToken) {
-			c.JSON(401, gin.H{"error": shopService.ErrInvalidToken.Error()})
-			return
-		}
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(200, gin.H{"message": "item bought"})
+	c.JSON(200, gin.H{})
 }

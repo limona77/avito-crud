@@ -13,13 +13,12 @@ CREATE TABLE merch (
 
 CREATE TABLE transactions (
                               id SERIAL PRIMARY KEY,
-                              sender_id INT NOT NULL,
-                              receiver_id INT NOT NULL,
+                              sender VARCHAR(255)  NOT NULL,
+                              receiver VARCHAR(255)  NOT NULL,
                               amount INT NOT NULL,
-                              timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                               CONSTRAINT chk_positive_amount CHECK (amount > 0),
-                              CONSTRAINT fk_sender FOREIGN KEY (sender_id) REFERENCES employees (id) ON DELETE CASCADE,
-                              CONSTRAINT fk_receiver FOREIGN KEY (receiver_id) REFERENCES employees (id) ON DELETE CASCADE
+                              CONSTRAINT fk_sender FOREIGN KEY (sender) REFERENCES employees (name) ON DELETE CASCADE,
+                              CONSTRAINT fk_receiver FOREIGN KEY (receiver) REFERENCES employees (name) ON DELETE CASCADE
 );
 
 CREATE TABLE purchases (
@@ -32,8 +31,8 @@ CREATE TABLE purchases (
 );
 
 CREATE UNIQUE INDEX idx_employees_name ON employees(name);
-CREATE INDEX idx_transactions_sender ON transactions(sender_id);
-CREATE INDEX idx_transactions_receiver ON transactions(receiver_id);
+CREATE INDEX idx_transactions_sender ON transactions(sender);
+CREATE INDEX idx_transactions_receiver ON transactions(receiver);
 CREATE INDEX idx_purchases_employee ON purchases(employee_id);
 
 INSERT INTO merch (name, price) VALUES
