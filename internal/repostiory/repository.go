@@ -21,3 +21,10 @@ type ITransferRepository interface {
 	UpdateBalance(ctx context.Context, sender, receiver string, amount int) error
 	CheckBalance(ctx context.Context, sender string, amount int) (bool, error)
 }
+
+type IinfoRepository interface {
+	GetUserInventory(ctx context.Context, userID int) ([]*model.UserInventory, error)
+	GetReceivedTransactions(ctx context.Context, user string) ([]*model.Received, error)
+	GetSentTransactions(ctx context.Context, user string) ([]*model.Sent, error)
+	GetBalance(ctx context.Context, userID int) (int, error)
+}

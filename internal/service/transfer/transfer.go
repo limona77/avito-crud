@@ -31,7 +31,7 @@ func NewTransferService(log *slog.Logger, transactionRepository repostiory.ITran
 }
 
 func (t *transfer) SendCoin(ctx context.Context, token, receiver string, amount int) error {
-	const op = "transaction.Transfer"
+	const op = "transfer.Transfer"
 	log := t.log.With(
 		slog.String("op", op),
 		slog.String("sender, receiver", receiver),

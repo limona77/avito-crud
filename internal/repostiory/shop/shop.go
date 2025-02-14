@@ -74,8 +74,10 @@ func (s *shopRepository) UpdateBalance(ctx context.Context, price, userID int) e
 func (s *shopRepository) CreatePurchase(ctx context.Context, userID, merchID int) error {
 	op := "shopRepository.InsertPurchase"
 	queryInsertPurchase := `
-		INSERT INTO purchases (employee_id, merch_id)
-		VALUES ($1, $2)
+		INSERT INTO purchases (employee_id, merch_id, quantity)
+		VALUES ($1, $2, 1)
+		ON CONFLICT (employee_id, merch_id)
+		DO UPDATE SET quantity = purchases.quantity + 1;
 	`
 	qInsertPurchase := db.Query{
 		Name:     "shopRepository.InsertPurchase",
@@ -92,53 +94,3 @@ func (s *shopRepository) CreatePurchase(ctx context.Context, userID, merchID int
 	}
 	return nil
 }
-
-//
-//func (s *shopRepository) BuyItem(ctx context.Context, userID int, itemName string) error {
-//
-//	// TODO: закинуть в сервисный слой
-//	// 2. Проверяем, достаточно ли средств для покупки
-//	//if balance < price {
-//	//	return fmt.Errorf("%s: %w", op, ErrInsufficientFunds)
-//	//}
-//
-//	// 3. Безопасно обновляем баланс пользователя:
-//	//    Используем условие "AND balance >= $1", чтобы избежать ухода баланса в минус при гонках.
-//	queryUpdateBalance := `
-//		UPDATE employees
-//		SET balance = balance - $1
-//		WHERE id = $2 AND balance >= $1
-//		RETURNING balance
-//	`
-//	qUpdateBalance := db.Query{
-//		Name:     "shopRepository.UpdateUserBalance",
-//		QueryRaw: queryUpdateBalance,
-//	}
-//
-//	var newBalance int
-//	err = s.db.DB().QueryRowContext(ctx, qUpdateBalance, price, userID).Scan(&newBalance)
-//	if err != nil {
-//		if errors.Is(err, pgx.ErrNoRows) {
-//			// Обновление не затронуло ни одной строки – баланс недостаточен
-//			return fmt.Errorf("%s: %w", op, ErrInsufficientFunds)
-//		}
-//		return fmt.Errorf("%s: %w", op, err)
-//	}
-//
-//	// 4. Записываем факт покупки в таблицу purchases
-//	queryInsertPurchase := `
-//		INSERT INTO purchases (employee_id, merch_id)
-//		VALUES ($1, $2)
-//	`
-//	qInsertPurchase := db.Query{
-//		Name:     "shopRepository.InsertPurchase",
-//		QueryRaw: queryInsertPurchase,
-//	}
-//
-//	_, err = s.db.DB().ExecContext(ctx, qInsertPurchase, userID, merchID)
-//	if err != nil {
-//		return fmt.Errorf("%s: %w", op, err)
-//	}
-//
-//	return nil
-//}

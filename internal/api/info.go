@@ -1,10 +1,9 @@
 package api
 
 import (
+	"avito-crud/internal/model"
 	authRepo "avito-crud/internal/repostiory/auth"
-	shopRepo "avito-crud/internal/repostiory/shop"
 	"avito-crud/internal/service"
-	shopService "avito-crud/internal/service/shop"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"log/slog"
@@ -12,12 +11,16 @@ import (
 	"strings"
 )
 
-type shop struct {
-	shopService service.IShopService
+type info struct {
+	infoService service.IInfoService
 	log         *slog.Logger
 }
 
-func (s *shop) buyItem(ctx *gin.Context) {
+type InfoResponse struct {
+	Info model.UserInfo `json:"info"`
+}
+
+func (i *info) getInfo(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 
 	if authHeader == "" {
@@ -34,32 +37,15 @@ func (s *shop) buyItem(ctx *gin.Context) {
 
 	token := tokenParts[1]
 
-	item := ctx.Param("item")
-	if item == "" {
-		ctx.JSON(400, gin.H{"error": "item not provided"})
-		return
-	}
-
-	err := s.shopService.BuyItem(ctx, token, item)
+	userInfo, err := i.infoService.GetInfo(ctx, token)
 	if err != nil {
-		if errors.Is(err, shopRepo.ErrInsufficientFunds) {
-			ctx.JSON(400, gin.H{"error": shopRepo.ErrInsufficientFunds.Error()})
-			return
-		}
-		if errors.Is(err, shopRepo.ErrMerchNotFound) {
-			ctx.JSON(404, gin.H{"error": shopRepo.ErrMerchNotFound.Error()})
-			return
-		}
 		if errors.Is(err, authRepo.ErrUserNotFound) {
 			ctx.JSON(404, gin.H{"error": authRepo.ErrUserNotFound.Error()})
-			return
-		}
-		if errors.Is(err, shopService.ErrInvalidToken) {
-			ctx.JSON(401, gin.H{"error": shopService.ErrInvalidToken.Error()})
 			return
 		}
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(200, gin.H{"message": "item bought"})
+
+	ctx.JSON(200, *userInfo)
 }

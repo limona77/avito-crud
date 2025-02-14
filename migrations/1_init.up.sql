@@ -25,9 +25,10 @@ CREATE TABLE purchases (
                            id SERIAL PRIMARY KEY,
                            employee_id INT NOT NULL,
                            merch_id INT NOT NULL,
-                           timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           quantity INT NOT NULL,
                            CONSTRAINT fk_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE,
                            CONSTRAINT fk_merch FOREIGN KEY (merch_id) REFERENCES merch (id) ON DELETE CASCADE
+                           CONSTRAINT uniq_employee_merch UNIQUE (employee_id, merch_id);
 );
 
 CREATE UNIQUE INDEX idx_employees_name ON employees(name);
@@ -46,4 +47,5 @@ INSERT INTO merch (name, price) VALUES
                                           ('socks', 10),
                                           ('wallet', 50),
                                           ('pink-hoody', 500);
+
 

@@ -22,26 +22,26 @@ type AuthResponse struct {
 	Token string `json:"token"`
 }
 
-func (a *auth) auth(c *gin.Context) {
+func (a *auth) auth(ctx *gin.Context) {
 	var req AuthRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": errors.New("incorrect format").Error()})
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, gin.H{"error": errors.New("incorrect format").Error()})
 		return
 	}
 
-	token, err := a.authService.Login(c, req.Username, req.Password)
+	token, err := a.authService.Login(ctx, req.Username, req.Password)
 	if err != nil {
 		if errors.Is(err, repo.ErrUserNotFound) {
-			c.JSON(404, gin.H{"error": repo.ErrUserNotFound.Error()})
+			ctx.JSON(404, gin.H{"error": repo.ErrUserNotFound.Error()})
 			return
 		}
 		if errors.Is(err, service2.ErrInvalidCredentials) {
-			c.JSON(401, gin.H{"error": service2.ErrInvalidCredentials.Error()})
+			ctx.JSON(401, gin.H{"error": service2.ErrInvalidCredentials.Error()})
 			return
 		}
-		c.JSON(500, gin.H{"error": errors.New("internal server error").Error()})
+		ctx.JSON(500, gin.H{"error": errors.New("internal server error").Error()})
 		return
 	}
 	resp := AuthResponse{Token: token}
-	c.JSON(200, resp)
+	ctx.JSON(200, resp)
 }

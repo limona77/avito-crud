@@ -8,10 +8,12 @@ import (
 	"avito-crud/internal/config"
 	"avito-crud/internal/repostiory"
 	authRepo "avito-crud/internal/repostiory/auth"
+	infoRepo "avito-crud/internal/repostiory/info"
 	shopRepo "avito-crud/internal/repostiory/shop"
 	transferRepo "avito-crud/internal/repostiory/transfer"
 	"avito-crud/internal/service"
 	"avito-crud/internal/service/auth"
+	info "avito-crud/internal/service/info"
 	"avito-crud/internal/service/shop"
 	"avito-crud/internal/service/transfer"
 	"context"
@@ -36,6 +38,9 @@ type serviceProvider struct {
 
 	transferService    service.ITransferService
 	transferRepository repostiory.ITransferRepository
+
+	infoRepository repostiory.IinfoRepository
+	infoService    service.IInfoService
 
 	jwtConfig config.JWTConfig
 }
@@ -133,7 +138,7 @@ func (s *serviceProvider) AuthRepository(ctx context.Context) repostiory.IAuthRe
 
 func (s *serviceProvider) ShopService(ctx context.Context) service.IShopService {
 	if s.shopService == nil {
-		s.shopService = shop.NewShopService(s.LoggerConfig(), s.ShopRepository(ctx), s.AuthRepository(ctx), []byte(s.JWTConfig().Secret()))
+		s.shopService = shop.NewShopService(s.LoggerConfig(), s.ShopRepository(ctx), s.AuthRepository(ctx), []byte(s.JWTConfig().Secret()), s.TxManager(ctx))
 	}
 	return s.shopService
 }
@@ -157,4 +162,18 @@ func (s *serviceProvider) TransferRepository(ctx context.Context) repostiory.ITr
 		s.transferRepository = transferRepo.NewTransferRepository(s.DBClient(ctx))
 	}
 	return s.transferRepository
+}
+
+func (s *serviceProvider) InfoRepository(ctx context.Context) repostiory.IinfoRepository {
+	if s.infoRepository == nil {
+		s.infoRepository = infoRepo.NewInfoRepository(s.DBClient(ctx))
+	}
+	return s.infoRepository
+}
+
+func (s *serviceProvider) InforService(ctx context.Context) service.IInfoService {
+	if s.infoService == nil {
+		s.infoService = info.NewInfoService(s.LoggerConfig(), s.InfoRepository(ctx), []byte(s.JWTConfig().Secret()))
+	}
+	return s.infoService
 }
