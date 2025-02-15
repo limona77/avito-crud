@@ -78,7 +78,7 @@ func (s *shop) BuyItem(ctx context.Context, token, item string) error {
 
 		log.Info("attempting to update balance")
 		// Обновляем баланс пользователя
-		err = s.shopRepository.UpdateBalance(ctx, -merch.Price, user.ID) // Списываем монеты
+		err = s.shopRepository.UpdateBalance(ctx, merch.Price, user.ID) // Списываем монеты
 		if err != nil {
 			if errors.Is(err, shopRepo.ErrInsufficientFunds) {
 				s.log.Warn("insufficient funds", sl.Err(err))
