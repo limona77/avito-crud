@@ -18,13 +18,15 @@ type info struct {
 	log            *slog.Logger
 	infoRepository repostiory.IinfoRepository
 	jwtSecret      []byte
+	tokenService   utils.ITokenService
 }
 
-func NewInfoService(log *slog.Logger, infoRepository repostiory.IinfoRepository, jwtSecret []byte) service.IInfoService {
+func NewInfoService(log *slog.Logger, infoRepository repostiory.IinfoRepository, jwtSecret []byte, tokenService utils.ITokenService) service.IInfoService {
 	return &info{
 		log:            log,
 		infoRepository: infoRepository,
 		jwtSecret:      jwtSecret,
+		tokenService:   tokenService,
 	}
 }
 func (i *info) GetInfo(ctx context.Context, token string) (*model.UserInfo, error) {
@@ -34,7 +36,7 @@ func (i *info) GetInfo(ctx context.Context, token string) (*model.UserInfo, erro
 		slog.String("op", op),
 	)
 	log.Info("verifying token")
-	userClaims, err := utils.VerifyToken(token, i.jwtSecret)
+	userClaims, err := i.tokenService.VerifyToken(token, i.jwtSecret)
 	if err != nil {
 		i.log.Warn("failed to verify token", sl.Err(err))
 		return &model.UserInfo{}, fmt.Errorf("%s: %w", op, shop.ErrInvalidToken)

@@ -22,15 +22,16 @@ type auth struct {
 	log            *slog.Logger
 	tokenTTL       time.Duration
 	authRepository repostiory.IAuthRepository
+	tokenService   utils.ITokenService
 	jwtSecret      []byte
 }
 
-func NewAuthService(log *slog.Logger, tokenTTL time.Duration, authRepository repostiory.IAuthRepository, jwtSecret []byte) service.IAuthService {
-	return &auth{log: log, tokenTTL: tokenTTL, authRepository: authRepository, jwtSecret: jwtSecret}
+func NewAuthService(log *slog.Logger, tokenTTL time.Duration, authRepository repostiory.IAuthRepository, jwtSecret []byte, tokenService utils.ITokenService) service.IAuthService {
+	return &auth{log: log, tokenTTL: tokenTTL, authRepository: authRepository, jwtSecret: jwtSecret, tokenService: tokenService}
 }
 
-func (a *auth) Login(ctx context.Context, username, password string) (string, error) {
-	const op = "auth.Login"
+func (a *auth) Auth(ctx context.Context, username, password string) (string, error) {
+	const op = "auth.Auth"
 
 	log := a.log.With(
 		slog.String("op", op),
@@ -59,7 +60,7 @@ func (a *auth) Login(ctx context.Context, username, password string) (string, er
 			}
 			user.ID = id
 			user.UserName = username
-			token, err := utils.GenerateToken(*user, a.jwtSecret, a.tokenTTL)
+			token, err := a.tokenService.GenerateToken(*user, a.jwtSecret, a.tokenTTL)
 			if err != nil {
 				a.log.Error("failed to generate token", sl.Err(err))
 
@@ -76,7 +77,7 @@ func (a *auth) Login(ctx context.Context, username, password string) (string, er
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)
 	}
 
-	token, err := utils.GenerateToken(*user, a.jwtSecret, a.tokenTTL)
+	token, err := a.tokenService.GenerateToken(*user, a.jwtSecret, a.tokenTTL)
 	if err != nil {
 		a.log.Error("failed to generate token", sl.Err(err))
 

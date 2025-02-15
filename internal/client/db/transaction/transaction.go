@@ -20,7 +20,7 @@ func NewTransactionManager(db db.Transactor) db.TxManager {
 }
 
 // transaction основная функция, которая выполняет указанный пользователем обработчик в транзакции
-func (m *manager) transaction(ctx context.Context, opts pgx.TxOptions, fn db.Handler) (err error) {
+func (m *manager) transaction(ctx context.Context, opts pgx.TxOptions, fn func(ctx context.Context) error) (err error) {
 	// Если это вложенная транзакция, пропускаем инициацию новой транзакции и выполняем обработчик.
 	tx, ok := ctx.Value(pg.TxKey).(pgx.Tx)
 	if ok {
@@ -71,7 +71,7 @@ func (m *manager) transaction(ctx context.Context, opts pgx.TxOptions, fn db.Han
 	return err
 }
 
-func (m *manager) ReadCommitted(ctx context.Context, f db.Handler) error {
+func (m *manager) ReadCommitted(ctx context.Context, f func(ctx context.Context) error) error {
 	txOpts := pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 	return m.transaction(ctx, txOpts, f)
 }

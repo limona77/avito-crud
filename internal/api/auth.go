@@ -29,7 +29,7 @@ func (a *auth) auth(ctx *gin.Context) {
 		return
 	}
 
-	token, err := a.authService.Login(ctx, req.Username, req.Password)
+	token, err := a.authService.Auth(ctx, req.Username, req.Password)
 	if err != nil {
 		if errors.Is(err, repo.ErrUserNotFound) {
 			ctx.JSON(404, gin.H{"error": repo.ErrUserNotFound.Error()})

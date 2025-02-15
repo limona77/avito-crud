@@ -6,7 +6,7 @@ import (
 )
 
 type IAuthService interface {
-	Login(ctx context.Context, username, password string) (string, error)
+	Auth(ctx context.Context, username, password string) (string, error)
 }
 
 type IShopService interface {

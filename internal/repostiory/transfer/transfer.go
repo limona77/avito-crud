@@ -40,7 +40,7 @@ func (t *transferRepository) CreateTransaction(ctx context.Context, sender, rece
 	return id, nil
 }
 
-func (t *transferRepository) UpdateBalance(ctx context.Context, sender, receiver string, amount int) error {
+func (t *transferRepository) Transfer(ctx context.Context, sender, receiver string, amount int) error {
 	const op = "transactionRepository.UpdateBalance"
 	query := `WITH deduct AS (
     				UPDATE employees

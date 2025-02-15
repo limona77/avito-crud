@@ -20,14 +20,15 @@ type shop struct {
 	authRepository repostiory.IAuthRepository
 	txManager      db.TxManager
 	jwtSecret      []byte
+	tokenService   utils.ITokenService
 }
 
 var (
 	ErrInvalidToken = errors.New("invalid token")
 )
 
-func NewShopService(log *slog.Logger, shopRepository repostiory.IShopRepository, authRepository repostiory.IAuthRepository, jwtSecret []byte, txManager db.TxManager) service.IShopService {
-	return &shop{log: log, shopRepository: shopRepository, authRepository: authRepository, jwtSecret: jwtSecret, txManager: txManager}
+func NewShopService(log *slog.Logger, shopRepository repostiory.IShopRepository, authRepository repostiory.IAuthRepository, jwtSecret []byte, txManager db.TxManager, tokenService utils.ITokenService) service.IShopService {
+	return &shop{log: log, shopRepository: shopRepository, authRepository: authRepository, jwtSecret: jwtSecret, txManager: txManager, tokenService: tokenService}
 }
 
 func (s *shop) BuyItem(ctx context.Context, token, item string) error {
@@ -39,7 +40,7 @@ func (s *shop) BuyItem(ctx context.Context, token, item string) error {
 
 	log.Info("verifying token")
 	// Верификация токена
-	userClaims, err := utils.VerifyToken(token, s.jwtSecret)
+	userClaims, err := s.tokenService.VerifyToken(token, s.jwtSecret)
 	if err != nil {
 		s.log.Warn("failed to verify token", sl.Err(err))
 		return fmt.Errorf("%s: %w", op, ErrInvalidToken)

@@ -23,11 +23,12 @@ type transfer struct {
 	log                *slog.Logger
 	transferRepository repostiory.ITransferRepository
 	txManager          db.TxManager
+	tokenService       utils.ITokenService
 	jwtSecret          []byte
 }
 
-func NewTransferService(log *slog.Logger, transactionRepository repostiory.ITransferRepository, jwtSecret []byte, txManager db.TxManager) service.ITransferService {
-	return &transfer{log: log, transferRepository: transactionRepository, jwtSecret: jwtSecret, txManager: txManager}
+func NewTransferService(log *slog.Logger, transactionRepository repostiory.ITransferRepository, jwtSecret []byte, txManager db.TxManager, tokenService utils.ITokenService) service.ITransferService {
+	return &transfer{log: log, transferRepository: transactionRepository, jwtSecret: jwtSecret, txManager: txManager, tokenService: tokenService}
 }
 
 func (t *transfer) SendCoin(ctx context.Context, token, receiver string, amount int) error {
@@ -37,7 +38,7 @@ func (t *transfer) SendCoin(ctx context.Context, token, receiver string, amount 
 		slog.String("sender, receiver", receiver),
 	)
 	log.Info("verifying token")
-	userClaims, err := utils.VerifyToken(token, t.jwtSecret)
+	userClaims, err := t.tokenService.VerifyToken(token, t.jwtSecret)
 	if err != nil {
 		t.log.Warn("failed to verify token", sl.Err(err))
 		return fmt.Errorf("%s: %w", op, shop.ErrInvalidToken)
@@ -56,7 +57,7 @@ func (t *transfer) SendCoin(ctx context.Context, token, receiver string, amount 
 		}
 
 		log.Info("attempting to update balance")
-		errTx = t.transferRepository.UpdateBalance(ctx, userClaims.Username, receiver, amount)
+		errTx = t.transferRepository.Transfer(ctx, userClaims.Username, receiver, amount)
 		if errTx != nil {
 			if errors.Is(errTx, shopRepo.ErrInsufficientFunds) {
 				t.log.Warn("insufficient funds", sl.Err(errTx))

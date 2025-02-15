@@ -7,9 +7,6 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-// Handler - функция, которая выполняется в транзакции
-type Handler func(ctx context.Context) error
-
 // Client клиент для работы с БД
 type Client interface {
 	DB() DB
@@ -18,7 +15,7 @@ type Client interface {
 
 // TxManager менеджер транзакций, который выполняет указанный пользователем обработчик в транзакции
 type TxManager interface {
-	ReadCommitted(ctx context.Context, f Handler) error
+	ReadCommitted(ctx context.Context, f func(ctx context.Context) error) error
 }
 
 // Query обертка над запросом, хранящая имя запроса и сам запрос
