@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+type MockInfoRepositoryRepository struct {
+	mock.Mock
+}
 type MockTokenService struct {
 	mock.Mock
 }
@@ -24,11 +27,6 @@ func (m *MockTokenService) VerifyToken(tokenStr string, secretKey []byte) (*mode
 	}
 	return nil, args.Error(1)
 }
-
-type MockInfoRepositoryRepository struct {
-	mock.Mock
-}
-
 func (m *MockInfoRepositoryRepository) GetUserInventory(ctx context.Context, userID int) ([]*model.UserInventory, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).([]*model.UserInventory), args.Error(1)

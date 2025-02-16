@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	jwtSecretEnvName = "JWT_SECRET_KEY"
+	jwtSecretEnvName = "JWT_SECRET"
 	tokenTTl         = "TOKEN_TTL"
 )
 

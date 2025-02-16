@@ -4,6 +4,7 @@ import (
 	"avito-crud/internal/model"
 	authRepo "avito-crud/internal/repostiory/auth"
 	"avito-crud/internal/service"
+	shopService "avito-crud/internal/service/shop"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"log/slog"
@@ -41,6 +42,10 @@ func (i *info) getInfo(ctx *gin.Context) {
 	if err != nil {
 		if errors.Is(err, authRepo.ErrUserNotFound) {
 			ctx.JSON(404, gin.H{"error": authRepo.ErrUserNotFound.Error()})
+			return
+		}
+		if errors.Is(err, shopService.ErrInvalidToken) {
+			ctx.JSON(401, gin.H{"error": shopService.ErrInvalidToken.Error()})
 			return
 		}
 		ctx.JSON(500, gin.H{"error": err.Error()})

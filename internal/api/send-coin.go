@@ -49,7 +49,7 @@ func (t *transaction) sendCoin(ctx *gin.Context) {
 	err := t.transferService.SendCoin(ctx, token, req.ToUser, req.Amount)
 	if err != nil {
 		if errors.Is(err, shopService.ErrInvalidToken) {
-			ctx.JSON(401, gin.H{"error": "Invalid token"})
+			ctx.JSON(401, gin.H{"error": shopService.ErrInvalidToken.Error()})
 			return
 		}
 		if errors.Is(err, shopRepo.ErrInsufficientFunds) {
