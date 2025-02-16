@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/jackc/pgx/v4"
 )
 
@@ -18,6 +19,7 @@ type infoRepository struct {
 func NewInfoRepository(db db.Client) repostiory.IinfoRepository {
 	return &infoRepository{db: db}
 }
+
 func (i *infoRepository) GetUserInventory(ctx context.Context, userID int) ([]*model.UserInventory, error) {
 	const op = "infoRepository.GetUserInventory"
 

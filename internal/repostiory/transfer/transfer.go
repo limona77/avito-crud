@@ -6,9 +6,9 @@ import (
 	"avito-crud/internal/repostiory/auth"
 	"avito-crud/internal/repostiory/shop"
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/jackc/pgconn"
 )
 
@@ -70,31 +70,4 @@ func (t *transferRepository) Transfer(ctx context.Context, sender, receiver stri
 		return fmt.Errorf("%s: %w", op, shop.ErrInsufficientFunds)
 	}
 	return nil
-}
-
-func (t *transferRepository) CheckBalance(ctx context.Context, sender string, amount int) (bool, error) {
-	const op = "transactionRepository.checkBalance"
-	// Запрос на получение баланса отправителя
-	query := `SELECT balance FROM employees WHERE name = $1`
-	var balance int
-	q := db.Query{
-		Name:     "transferRepository.UpdateBalance",
-		QueryRaw: query,
-	}
-	// Выполняем запрос
-	err := t.db.DB().QueryRowContext(ctx, q, sender).Scan(&balance)
-	if err != nil {
-		// Если пользователь не найден, возвращаем ошибку
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, fmt.Errorf("%s: %w", op, auth.ErrUserNotFound)
-		}
-		// В случае других ошибок
-		return false, fmt.Errorf("%s: %w", op, err)
-	}
-
-	// Проверяем, достаточно ли средств
-	if balance >= amount {
-		return true, nil
-	}
-	return false, nil
 }

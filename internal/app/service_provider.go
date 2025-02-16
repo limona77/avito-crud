@@ -16,7 +16,7 @@ import (
 	info "avito-crud/internal/service/info"
 	"avito-crud/internal/service/shop"
 	"avito-crud/internal/service/transfer"
-	"avito-crud/internal/utils"
+	"avito-crud/internal/utils/jwtToken"
 	"context"
 	"log"
 	"log/slog"
@@ -31,7 +31,7 @@ type serviceProvider struct {
 	dbClient  db.Client
 	txManager db.TxManager
 
-	tokenService utils.ITokenService
+	tokenService jwtToken.ITokenService
 
 	authService    service.IAuthService
 	authRepository repostiory.IAuthRepository
@@ -51,6 +51,7 @@ type serviceProvider struct {
 func newServiceProvider() *serviceProvider {
 	return &serviceProvider{}
 }
+
 func (s *serviceProvider) PGConfig() config.PGConfig {
 	if s.pgConfig == nil {
 		cfg, err := config.NewPGConfig()
@@ -63,6 +64,7 @@ func (s *serviceProvider) PGConfig() config.PGConfig {
 
 	return s.pgConfig
 }
+
 func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
 	if s.dbClient == nil {
 		cl, err := pg.New(ctx, s.PGConfig().DSN())
@@ -102,6 +104,7 @@ func (s *serviceProvider) HTTPConfig() config.HTTPConfig {
 
 	return s.httpConfig
 }
+
 func (s *serviceProvider) JWTConfig() config.JWTConfig {
 	if s.jwtConfig == nil {
 		cfg, err := config.NewJWTConfig()
@@ -114,6 +117,7 @@ func (s *serviceProvider) JWTConfig() config.JWTConfig {
 
 	return s.jwtConfig
 }
+
 func (s *serviceProvider) LoggerConfig() *slog.Logger {
 	if s.log == nil {
 		cfg := config.NewLoggerConfig()
@@ -123,19 +127,28 @@ func (s *serviceProvider) LoggerConfig() *slog.Logger {
 
 	return s.log
 }
-func (s *serviceProvider) TokenService() utils.ITokenService {
+
+func (s *serviceProvider) TokenService() jwtToken.ITokenService {
 	if s.tokenService == nil {
-		s.tokenService = utils.NewTokenService()
+		s.tokenService = jwtToken.NewTokenService()
 	}
 	return s.tokenService
 }
+
 func (s *serviceProvider) AuthService(ctx context.Context) service.IAuthService {
 	if s.authService == nil {
-		s.authService = auth.NewAuthService(s.LoggerConfig(), s.JWTConfig().TTL(), s.AuthRepository(ctx), []byte(s.jwtConfig.Secret()), s.TokenService())
+		s.authService = auth.NewAuthService(
+			s.LoggerConfig(),
+			s.JWTConfig().TTL(),
+			s.AuthRepository(ctx),
+			[]byte(s.jwtConfig.Secret()),
+			s.TokenService(),
+		)
 	}
 
 	return s.authService
 }
+
 func (s *serviceProvider) AuthRepository(ctx context.Context) repostiory.IAuthRepository {
 	if s.authRepository == nil {
 		s.authRepository = authRepo.NewAuthRepository(s.DBClient(ctx))
@@ -146,7 +159,14 @@ func (s *serviceProvider) AuthRepository(ctx context.Context) repostiory.IAuthRe
 
 func (s *serviceProvider) ShopService(ctx context.Context) service.IShopService {
 	if s.shopService == nil {
-		s.shopService = shop.NewShopService(s.LoggerConfig(), s.ShopRepository(ctx), s.AuthRepository(ctx), []byte(s.JWTConfig().Secret()), s.TxManager(ctx), s.TokenService())
+		s.shopService = shop.NewShopService(
+			s.LoggerConfig(),
+			s.ShopRepository(ctx),
+			s.AuthRepository(ctx),
+			[]byte(s.JWTConfig().Secret()),
+			s.TxManager(ctx),
+			s.TokenService(),
+		)
 	}
 	return s.shopService
 }
@@ -160,7 +180,13 @@ func (s *serviceProvider) ShopRepository(ctx context.Context) repostiory.IShopRe
 
 func (s *serviceProvider) TransferService(ctx context.Context) service.ITransferService {
 	if s.transferService == nil {
-		s.transferService = transfer.NewTransferService(s.LoggerConfig(), s.TransferRepository(ctx), []byte(s.JWTConfig().Secret()), s.TxManager(ctx), s.TokenService())
+		s.transferService = transfer.NewTransferService(
+			s.LoggerConfig(),
+			s.TransferRepository(ctx),
+			[]byte(s.JWTConfig().Secret()),
+			s.TxManager(ctx),
+			s.TokenService(),
+		)
 	}
 	return s.transferService
 }
@@ -181,7 +207,12 @@ func (s *serviceProvider) InfoRepository(ctx context.Context) repostiory.IinfoRe
 
 func (s *serviceProvider) InfoService(ctx context.Context) service.IInfoService {
 	if s.infoService == nil {
-		s.infoService = info.NewInfoService(s.LoggerConfig(), s.InfoRepository(ctx), []byte(s.JWTConfig().Secret()), s.TokenService())
+		s.infoService = info.NewInfoService(
+			s.LoggerConfig(),
+			s.InfoRepository(ctx),
+			[]byte(s.JWTConfig().Secret()),
+			s.TokenService(),
+		)
 	}
 	return s.infoService
 }

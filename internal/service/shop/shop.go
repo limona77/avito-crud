@@ -6,7 +6,7 @@ import (
 	authRepo "avito-crud/internal/repostiory/auth"
 	shopRepo "avito-crud/internal/repostiory/shop"
 	"avito-crud/internal/service"
-	"avito-crud/internal/utils"
+	"avito-crud/internal/utils/jwtToken"
 	"avito-crud/pkg/logger/sl"
 	"context"
 	"errors"
@@ -20,15 +20,27 @@ type shop struct {
 	authRepository repostiory.IAuthRepository
 	txManager      db.TxManager
 	jwtSecret      []byte
-	tokenService   utils.ITokenService
+	tokenService   jwtToken.ITokenService
 }
 
-var (
-	ErrInvalidToken = errors.New("invalid token")
-)
+var ErrInvalidToken = errors.New("invalid token")
 
-func NewShopService(log *slog.Logger, shopRepository repostiory.IShopRepository, authRepository repostiory.IAuthRepository, jwtSecret []byte, txManager db.TxManager, tokenService utils.ITokenService) service.IShopService {
-	return &shop{log: log, shopRepository: shopRepository, authRepository: authRepository, jwtSecret: jwtSecret, txManager: txManager, tokenService: tokenService}
+func NewShopService(
+	log *slog.Logger,
+	shopRepository repostiory.IShopRepository,
+	authRepository repostiory.IAuthRepository,
+	jwtSecret []byte,
+	txManager db.TxManager,
+	tokenService jwtToken.ITokenService,
+) service.IShopService {
+	return &shop{
+		log:            log,
+		shopRepository: shopRepository,
+		authRepository: authRepository,
+		jwtSecret:      jwtSecret,
+		txManager:      txManager,
+		tokenService:   tokenService,
+	}
 }
 
 func (s *shop) BuyItem(ctx context.Context, token, item string) error {
@@ -97,7 +109,6 @@ func (s *shop) BuyItem(ctx context.Context, token, item string) error {
 		// Все операции успешны, возвращаем nil для завершения транзакции
 		return nil
 	})
-
 	if err != nil {
 		s.log.Warn("failed to buy item", sl.Err(err))
 		return fmt.Errorf("%s: %w", op, err)

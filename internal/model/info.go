@@ -22,6 +22,6 @@ type Received struct {
 }
 
 type Sent struct {
-	ToUser string `json:"toUser" db:"receiver"` // db тег для привязки имени столбца
+	ToUser string `json:"toUser" db:"receiver"`
 	Amount int    `json:"amount"`
 }

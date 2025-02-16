@@ -19,7 +19,6 @@ type IShopRepository interface {
 type ITransferRepository interface {
 	CreateTransaction(ctx context.Context, sender, receiver string, amount int) (int, error)
 	Transfer(ctx context.Context, sender, receiver string, amount int) error
-	CheckBalance(ctx context.Context, sender string, amount int) (bool, error)
 }
 
 type IinfoRepository interface {

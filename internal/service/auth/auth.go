@@ -4,33 +4,47 @@ import (
 	"avito-crud/internal/repostiory"
 	repo "avito-crud/internal/repostiory/auth"
 	"avito-crud/internal/service"
-	"avito-crud/internal/utils"
+	"avito-crud/internal/utils/jwtToken"
 	"avito-crud/pkg/logger/sl"
 	"context"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
-)
+var ErrInvalidCredentials = errors.New("invalid credentials")
 
 type auth struct {
 	log            *slog.Logger
 	tokenTTL       time.Duration
 	authRepository repostiory.IAuthRepository
-	tokenService   utils.ITokenService
+	tokenService   jwtToken.ITokenService
 	jwtSecret      []byte
 }
 
-func NewAuthService(log *slog.Logger, tokenTTL time.Duration, authRepository repostiory.IAuthRepository, jwtSecret []byte, tokenService utils.ITokenService) service.IAuthService {
-	return &auth{log: log, tokenTTL: tokenTTL, authRepository: authRepository, jwtSecret: jwtSecret, tokenService: tokenService}
+func NewAuthService(
+	log *slog.Logger,
+	tokenTTL time.Duration,
+	authRepository repostiory.IAuthRepository,
+	jwtSecret []byte,
+	tokenService jwtToken.ITokenService,
+) service.IAuthService {
+	return &auth{
+		log:            log,
+		tokenTTL:       tokenTTL,
+		authRepository: authRepository,
+		jwtSecret:      jwtSecret,
+		tokenService:   tokenService,
+	}
 }
 
-func (a *auth) Auth(ctx context.Context, username, password string) (string, error) {
+func (a *auth) Auth(
+	ctx context.Context,
+	username, password string,
+) (string, error) {
 	const op = "auth.Auth"
 
 	log := a.log.With(
@@ -71,7 +85,6 @@ func (a *auth) Auth(ctx context.Context, username, password string) (string, err
 		}
 		a.log.Error("failed to get user", sl.Err(err))
 		return "", fmt.Errorf("%s: %w", op, err)
-
 	} else if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		a.log.Info("invalid credentials", sl.Err(err))
 		return "", fmt.Errorf("%s: %w", op, ErrInvalidCredentials)

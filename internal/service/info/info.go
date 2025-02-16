@@ -6,7 +6,7 @@ import (
 	"avito-crud/internal/repostiory/auth"
 	"avito-crud/internal/service"
 	"avito-crud/internal/service/shop"
-	"avito-crud/internal/utils"
+	"avito-crud/internal/utils/jwtToken"
 	"avito-crud/pkg/logger/sl"
 	"context"
 	"errors"
@@ -18,10 +18,15 @@ type info struct {
 	log            *slog.Logger
 	infoRepository repostiory.IinfoRepository
 	jwtSecret      []byte
-	tokenService   utils.ITokenService
+	tokenService   jwtToken.ITokenService
 }
 
-func NewInfoService(log *slog.Logger, infoRepository repostiory.IinfoRepository, jwtSecret []byte, tokenService utils.ITokenService) service.IInfoService {
+func NewInfoService(
+	log *slog.Logger,
+	infoRepository repostiory.IinfoRepository,
+	jwtSecret []byte,
+	tokenService jwtToken.ITokenService,
+) service.IInfoService {
 	return &info{
 		log:            log,
 		infoRepository: infoRepository,
@@ -29,6 +34,7 @@ func NewInfoService(log *slog.Logger, infoRepository repostiory.IinfoRepository,
 		tokenService:   tokenService,
 	}
 }
+
 func (i *info) GetInfo(ctx context.Context, token string) (*model.UserInfo, error) {
 	const op = "info.GetInfo"
 

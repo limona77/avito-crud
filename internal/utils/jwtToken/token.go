@@ -1,10 +1,11 @@
-package utils
+package jwtToken
 
 import (
 	"avito-crud/internal/model"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-	"time"
 )
 
 // TokenService описывает интерфейс для генерации и проверки токенов.

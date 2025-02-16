@@ -1,19 +1,19 @@
 package info
 
 import (
+	"avito-crud/internal/model"
 	"avito-crud/internal/service/shop"
 	"context"
 	"errors"
 	"io"
+	"log/slog"
 	"testing"
 
-	"avito-crud/internal/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"log/slog"
 )
 
-func TestInfoService_GetInfo_TableDriven(t *testing.T) {
+func TestInfoService_GetInfo(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	jwtSecret := []byte("supersecret")
 	ctx := context.Background()

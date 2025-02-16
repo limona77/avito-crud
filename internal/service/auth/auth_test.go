@@ -4,13 +4,14 @@ import (
 	"avito-crud/internal/model"
 	authRepo "avito-crud/internal/repostiory/auth"
 	"context"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"golang.org/x/crypto/bcrypt"
 	"io"
 	"log/slog"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAuthService_Auth_TableDriven(t *testing.T) {
@@ -51,8 +52,12 @@ func TestAuthService_Auth_TableDriven(t *testing.T) {
 			username: "newuser",
 			password: "password",
 			setupMocks: func(mockRepo *MockAuthRepository, mockTokenService *MockTokenService) {
-				mockRepo.On("GetUser", mock.Anything, "newuser").Return(&model.User{}, authRepo.ErrUserNotFound)
-				mockRepo.On("CreateUser", mock.Anything, "newuser", mock.AnythingOfType("string")).Return(2, nil)
+				mockRepo.
+					On("GetUser", mock.Anything, "newuser").
+					Return(&model.User{}, authRepo.ErrUserNotFound)
+				mockRepo.
+					On("CreateUser", mock.Anything, "newuser", mock.AnythingOfType("string")).
+					Return(2, nil)
 				newUser := &model.User{
 					ID:       2,
 					UserName: "newuser",
@@ -67,7 +72,7 @@ func TestAuthService_Auth_TableDriven(t *testing.T) {
 		{
 			name:     "Invalid credentials",
 			username: "testuser",
-			password: "wrongpassword", // неверный пароль
+			password: "wrongpassword",
 			setupMocks: func(mockRepo *MockAuthRepository, mockTokenService *MockTokenService) {
 				hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
 				assert.NoError(t, err)

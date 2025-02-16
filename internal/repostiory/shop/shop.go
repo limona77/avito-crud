@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/jackc/pgx/v4"
 )
 
@@ -71,6 +72,7 @@ func (s *shopRepository) UpdateBalance(ctx context.Context, price, userID int) e
 	}
 	return nil
 }
+
 func (s *shopRepository) CreatePurchase(ctx context.Context, userID, merchID int) error {
 	op := "shopRepository.InsertPurchase"
 	queryInsertPurchase := `

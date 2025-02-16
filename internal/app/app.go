@@ -5,18 +5,17 @@ import (
 	"avito-crud/internal/closer"
 	"avito-crud/internal/config"
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/rs/cors"
 	"log"
-	"log/slog"
 	"net/http"
 	"sync"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rs/cors"
 )
 
 type App struct {
 	httpServer      *http.Server
 	serviceProvider *serviceProvider
-	log             *slog.Logger
 }
 
 func NewApp(ctx context.Context) (*App, error) {
@@ -28,6 +27,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	}
 	return a, nil
 }
+
 func (a *App) Run() error {
 	defer func() {
 		closer.CloseAll()
@@ -90,7 +90,13 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 		AllowedHeaders:   []string{"Accept", "Content-Type", "Content-Length", "Authorization"},
 		AllowCredentials: true,
 	})
-	api.NewRouter(router, a.serviceProvider.AuthService(ctx), a.serviceProvider.ShopService(ctx), a.serviceProvider.TransferService(ctx), a.serviceProvider.InfoService(ctx))
+	api.NewRouter(
+		router,
+		a.serviceProvider.AuthService(ctx),
+		a.serviceProvider.ShopService(ctx),
+		a.serviceProvider.TransferService(ctx),
+		a.serviceProvider.InfoService(ctx),
+	)
 	a.httpServer = &http.Server{
 		Addr:    a.serviceProvider.HTTPConfig().Address(),
 		Handler: corsMiddleware.Handler(router),

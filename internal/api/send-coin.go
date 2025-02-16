@@ -7,15 +7,14 @@ import (
 	shopService "avito-crud/internal/service/shop"
 	"avito-crud/internal/service/transfer"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type transaction struct {
 	transferService service.ITransferService
-	log             *slog.Logger
 }
 
 type SendCoinRequest struct {
@@ -31,7 +30,6 @@ func (t *transaction) sendCoin(ctx *gin.Context) {
 		return
 	}
 
-	// Проверяем, что токен начинается с "Bearer "
 	tokenParts := strings.Split(authHeader, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
 		ctx.JSON(400, gin.H{"error": "Invalid Authorization header format"})

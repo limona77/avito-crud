@@ -5,8 +5,9 @@ import (
 	"avito-crud/internal/client/db/prettier"
 	"context"
 	"fmt"
-	"github.com/georgysavva/scany/pgxscan"
 	"log"
+
+	"github.com/georgysavva/scany/pgxscan"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
@@ -63,7 +64,6 @@ func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (
 }
 
 func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) (pgx.Rows, error) {
-
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
 	if ok {
 		return tx.Query(ctx, q.QueryRaw, args...)
@@ -73,7 +73,6 @@ func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) 
 }
 
 func (p *pg) QueryRowContext(ctx context.Context, q db.Query, args ...interface{}) pgx.Row {
-
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
 	if ok {
 		return tx.QueryRow(ctx, q.QueryRaw, args...)
@@ -97,6 +96,7 @@ func (p *pg) Close() {
 func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
 	return context.WithValue(ctx, TxKey, tx)
 }
+
 func logQuery(ctx context.Context, q db.Query, args ...interface{}) {
 	prettyQuery := prettier.Pretty(q.QueryRaw, prettier.PlaceholderDollar, args...)
 	log.Println(

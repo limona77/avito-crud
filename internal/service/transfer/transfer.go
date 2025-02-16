@@ -7,7 +7,7 @@ import (
 	shopRepo "avito-crud/internal/repostiory/shop"
 	"avito-crud/internal/service"
 	"avito-crud/internal/service/shop"
-	"avito-crud/internal/utils"
+	"avito-crud/internal/utils/jwtToken"
 	"avito-crud/pkg/logger/sl"
 	"context"
 	"errors"
@@ -15,20 +15,30 @@ import (
 	"log/slog"
 )
 
-var (
-	ErrSameUser = errors.New("sender and receiver are the same")
-)
+var ErrSameUser = errors.New("sender and receiver are the same")
 
 type transfer struct {
 	log                *slog.Logger
 	transferRepository repostiory.ITransferRepository
 	txManager          db.TxManager
-	tokenService       utils.ITokenService
+	tokenService       jwtToken.ITokenService
 	jwtSecret          []byte
 }
 
-func NewTransferService(log *slog.Logger, transactionRepository repostiory.ITransferRepository, jwtSecret []byte, txManager db.TxManager, tokenService utils.ITokenService) service.ITransferService {
-	return &transfer{log: log, transferRepository: transactionRepository, jwtSecret: jwtSecret, txManager: txManager, tokenService: tokenService}
+func NewTransferService(
+	log *slog.Logger,
+	transactionRepository repostiory.ITransferRepository,
+	jwtSecret []byte,
+	txManager db.TxManager,
+	tokenService jwtToken.ITokenService,
+) service.ITransferService {
+	return &transfer{
+		log:                log,
+		transferRepository: transactionRepository,
+		jwtSecret:          jwtSecret,
+		txManager:          txManager,
+		tokenService:       tokenService,
+	}
 }
 
 func (t *transfer) SendCoin(ctx context.Context, token, receiver string, amount int) error {

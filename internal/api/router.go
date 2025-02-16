@@ -2,13 +2,27 @@ package api
 
 import (
 	"avito-crud/internal/service"
+
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter(app *gin.Engine, authService service.IAuthService, shopService service.IShopService, transferService service.ITransferService, infoService service.IInfoService) {
+func NewRouter(
+	app *gin.Engine,
+	authService service.IAuthService,
+	shopService service.IShopService,
+	transferService service.ITransferService,
+	infoService service.IInfoService,
+) {
 	api := app.Group("/api")
-	newApiRoutes(api, authService, shopService, transferService, infoService)
+	newApiRoutes(
+		api,
+		authService,
+		shopService,
+		transferService,
+		infoService,
+	)
 }
+
 func newApiRoutes(r *gin.RouterGroup, authService service.IAuthService, shopService service.IShopService, transferService service.ITransferService, infoService service.IInfoService) {
 	a := &auth{authService: authService}
 	r.POST("/auth", a.auth)

@@ -5,13 +5,12 @@ import (
 	"avito-crud/internal/service"
 	service2 "avito-crud/internal/service/auth"
 	"errors"
+
 	"github.com/gin-gonic/gin"
-	"log/slog"
 )
 
 type auth struct {
 	authService service.IAuthService
-	log         *slog.Logger
 }
 
 type AuthRequest struct {
